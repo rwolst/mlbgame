@@ -105,6 +105,7 @@ class AtBat(object):
         des
         des_es
         event
+        event2
         event_es
         event_num
         home_team_runs
@@ -152,6 +153,7 @@ class Action(object):
         des
         des_es
         event
+        event2
         event_es
         event_num
         home_team_runs

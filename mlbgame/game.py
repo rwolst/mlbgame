@@ -613,6 +613,7 @@ class Player(mlbgame.object.Object):
 
     Properties:
         avg
+        bat_order
         bats
         boxname
         current_position
