@@ -51,8 +51,9 @@ def game_events(game_id, innings_endpoint=False):
         data = mlbgame.data.get_innings(game_id)
         endpoint = 'innings'
     # parse XML
-    parsed = etree.parse(data)
-    root = parsed.getroot()
+    parsed = etree.fromstring(data)
+    #root = parsed.getroot()
+    root = parsed
     # empty output file
     output = {}
     # loop through innings

@@ -69,7 +69,8 @@ def player_stats(game_id):
     """
     # get data from data module
     box_score = mlbgame.data.get_box_score(game_id)
-    box_score_tree = etree.parse(box_score).getroot()
+    #box_score_tree = etree.fromstring(box_score).getroot()
+    box_score_tree = etree.fromstring(box_score)
     # get pitching and batting info
     pitching = box_score_tree.findall('pitching')
     batting = box_score_tree.findall('batting')
@@ -79,7 +80,8 @@ def player_stats(game_id):
     # rawboxscore not available after 2018
     try:
         raw_box_score = mlbgame.data.get_raw_box_score(game_id)
-        raw_box_score_tree = etree.parse(raw_box_score).getroot()
+        #raw_box_score_tree = etree.fromstring(raw_box_score).getroot()
+        raw_box_score_tree = etree.fromstring(raw_box_score)
         additional_stats = __raw_player_stats_info(raw_box_score_tree)
         addl_home_pitching = additional_stats[0]['pitchers']
         addl_home_batting = additional_stats[0]['batters']
@@ -154,8 +156,10 @@ def team_stats(game_id):
     box_score = mlbgame.data.get_box_score(game_id)
     raw_box_score = mlbgame.data.get_raw_box_score(game_id)
     # parse XML
-    box_score_tree = etree.parse(box_score).getroot()
-    raw_box_score_tree = etree.parse(raw_box_score).getroot()
+    #box_score_tree = etree.fromstring(box_score).getroot()
+    box_score_tree = etree.fromstring(box_score)
+    #raw_box_score_tree = etree.fromstring(raw_box_score).getroot()
+    raw_box_score_tree = etree.fromstring(raw_box_score)
     # get pitching and batting ingo
     pitching = box_score_tree.findall('pitching')
     batting = box_score_tree.findall('batting')

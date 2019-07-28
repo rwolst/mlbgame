@@ -7,10 +7,11 @@ gets the data from mlb.com.
 
 import os
 try:
-    from urllib.request import urlopen
     from urllib.error import HTTPError
 except ImportError:
-    from urllib2 import urlopen, HTTPError
+    from urllib2 import HTTPError
+
+from .requester import Requester
 
 
 # Templates For URLS
@@ -35,20 +36,24 @@ IMPORTANT_DATES = ('http://lookup-service-prod.mlb.com/named.org_history.bam?'
 BCAST_INFO = ('http://mlb.mlb.com/lookup/json/named.mlb_broadcast_info.bam?'
               'team_id={}&season={}')
 INNINGS_URL = BASE_URL + 'gid_{3}/inning/inning_all.xml'
+
 # Local Directory
 PWD = os.path.join(os.path.dirname(__file__))
+
+# Requester for caching.
+requester = Requester(max_size=1000)
 
 
 def get_broadcast_info(team_id, year):
     try:
-        return urlopen(BCAST_INFO.format(team_id, year))
+        return requester.urlopen_read(BCAST_INFO.format(team_id, year))
     except HTTPError:
         raise ValueError('Failed to retrieve MLB broadcast information.')
 
 
 def get_important_dates(year):
     try:
-        return urlopen(IMPORTANT_DATES.format(year))
+        return requester.urlopen_read(IMPORTANT_DATES.format(year))
     except HTTPError:
         raise ValueError('Failed to retrieve MLB important dates information.')
 
@@ -56,7 +61,7 @@ def get_important_dates(year):
 def get_scoreboard(year, month, day):
     """Return the game file for a certain day matching certain criteria."""
     try:
-        data = urlopen(BASE_URL.format(year, month, day) + 'scoreboard.xml')
+        data = requester.urlopen_read(BASE_URL.format(year, month, day) + 'scoreboard.xml')
     except HTTPError:
         data = os.path.join(PWD, 'default.xml')
     return data
@@ -66,7 +71,7 @@ def get_box_score(game_id):
     """Return the box score file of a game with matching id."""
     year, month, day = get_date_from_game_id(game_id)
     try:
-        return urlopen(GAME_URL.format(year, month, day, game_id,
+        return requester.urlopen_read(GAME_URL.format(year, month, day, game_id,
                                        'boxscore.xml'))
     except HTTPError:
         raise ValueError('Could not find a game with that id.')
@@ -76,7 +81,7 @@ def get_raw_box_score(game_id):
     """Return the raw box score file of a game with matching id."""
     year, month, day = get_date_from_game_id(game_id)
     try:
-        return urlopen(GAME_URL.format(year, month, day, game_id,
+        return requester.urlopen_read(GAME_URL.format(year, month, day, game_id,
                                        'rawboxscore.xml'))
     except HTTPError:
         raise ValueError('Could not find a game with that id.')
@@ -86,7 +91,7 @@ def get_game_events(game_id):
     """Return the game events file of a game with matching id."""
     year, month, day = get_date_from_game_id(game_id)
     try:
-        return urlopen(GAME_URL.format(year, month, day, game_id,
+        return requester.urlopen_read(GAME_URL.format(year, month, day, game_id,
                                        'game_events.xml'))
     except HTTPError:
         raise ValueError('Could not find a game with that id.')
@@ -96,7 +101,7 @@ def get_innings(game_id):
     """Return the innings file of a game with matching id."""
     year, month, day = get_date_from_game_id(game_id)
     try:
-        return urlopen(INNINGS_URL.format(year, month, day, game_id))
+        return requester.urlopen_read(INNINGS_URL.format(year, month, day, game_id))
     except HTTPError:
         raise ValueError('Could not find a game with that id.')
 
@@ -105,7 +110,7 @@ def get_overview(game_id):
     """Return the linescore file of a game with matching id."""
     year, month, day = get_date_from_game_id(game_id)
     try:
-        return urlopen(GAME_URL.format(year, month, day, game_id,
+        return requester.urlopen_read(GAME_URL.format(year, month, day, game_id,
                                        'linescore.xml'))
     except HTTPError:
         raise ValueError('Could not find a game with that id.')
@@ -115,7 +120,7 @@ def get_players(game_id):
     """Return the players file of a game with matching id."""
     year, month, day = get_date_from_game_id(game_id)
     try:
-        return urlopen(GAME_URL.format(year, month, day, game_id,
+        return requester.urlopen_read(GAME_URL.format(year, month, day, game_id,
                                        'players.xml'))
     except HTTPError:
         raise ValueError('Could not find a game with that id.')
@@ -124,7 +129,7 @@ def get_players(game_id):
 def get_properties():
     """Return the current mlb properties file"""
     try:
-        return urlopen(PROPERTY_URL)
+        return requester.urlopen_read(PROPERTY_URL)
     # in case mlb.com depricates this functionality
     except HTTPError:
         raise ValueError('Could not find the properties file. '
@@ -135,7 +140,7 @@ def get_properties():
 def get_roster(team_id):
     """Return the roster file of team with matching id."""
     try:
-        return urlopen(ROSTER_URL.format(team_id))
+        return requester.urlopen_read(ROSTER_URL.format(team_id))
     except HTTPError:
         raise ValueError('Could not find a roster for a team with that id.')
 
@@ -143,7 +148,7 @@ def get_roster(team_id):
 def get_standings(date):
     """Return the standings file for current standings (given current date)."""
     try:
-        return urlopen(STANDINGS_URL.format(date.year,
+        return requester.urlopen_read(STANDINGS_URL.format(date.year,
                                             date.strftime('%Y/%m/%d')))
     except HTTPError:
         ValueError('Could not find the standings file. '
@@ -156,7 +161,7 @@ def get_historical_standings(date):
     try:
         url = STANDINGS_HISTORICAL_URL.format(date.year,
                                               date.strftime('%Y/%m/%d'))
-        return urlopen(url)
+        return requester.urlopen_read(url)
     except HTTPError:
         ValueError('Could not find standings for that date.')
 
@@ -164,7 +169,7 @@ def get_historical_standings(date):
 def get_injuries():
     """Return the injuries file for specified date."""
     try:
-        return urlopen(INJURY_URL)
+        return requester.urlopen_read(INJURY_URL)
     except HTTPError:
         ValueError('Could not find the injuries file. '
                    'mlb.com does not provide the file that '

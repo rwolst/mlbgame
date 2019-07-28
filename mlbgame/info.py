@@ -21,7 +21,8 @@ def __get_league_object():
     # get data
     data = mlbgame.data.get_properties()
     # return league object
-    return etree.parse(data).getroot().find('leagues').find('league')
+    #return etree.fromstring(data).getroot().find('leagues').find('league')
+    return etree.fromstring(data).find('leagues').find('league')
 
 
 def league_info():
@@ -49,7 +50,9 @@ def important_dates(year):
     """Returns a dictionary of important dates"""
     output = {}
     data = mlbgame.data.get_important_dates(year)
-    important_dates = etree.parse(data).getroot().\
+    #important_dates = etree.fromstring(data).getroot().\
+    #    find('queryResults').find('row')
+    important_dates = etree.fromstring(data).\
         find('queryResults').find('row')
     try:
         for x in important_dates.attrib:
@@ -65,7 +68,7 @@ def broadcast_info(team_id, date=datetime.now()):
     year = date.year
     game_date = date.strftime('%Y-%m-%dT00:00:00')
     data = mlbgame.data.get_broadcast_info(team_id, year)
-    schedule = json.loads(data.read().decode('utf-8'))
+    schedule = json.loads(data.decode('utf-8'))
     schedule = schedule['mlb_broadcast_info']['queryResults']['row']
     return [g for g in schedule if g['game_date'] == game_date]
 
@@ -271,7 +274,7 @@ class Info(mlbgame.object.Object):
 def roster(team_id):
     """Returns a dictionary of roster information for team id"""
     data = mlbgame.data.get_roster(team_id)
-    parsed = json.loads(data.read().decode('utf-8'))
+    parsed = json.loads(data.decode('utf-8'))
     players = parsed['roster_40']['queryResults']['row']
     return {'players': players, 'team_id': team_id}
 
@@ -352,7 +355,7 @@ def standings(date):
     else:
         data = mlbgame.data.get_historical_standings(date)
         standings_schedule_date = 'historical_standings_schedule_date'
-    parsed = json.loads(data.read().decode('utf-8'))
+    parsed = json.loads(data.decode('utf-8'))
     all_date_rptr = 'standings_all_date_rptr'
     all_date = 'standings_all_date'
     sjson = parsed[standings_schedule_date][all_date_rptr][all_date]
@@ -462,7 +465,7 @@ class Team(mlbgame.object.Object):
 
 def injury():
     data = mlbgame.data.get_injuries()
-    parsed = json.loads(data.read().decode('utf-8'))
+    parsed = json.loads(data.decode('utf-8'))
     return parsed['wsfb_news_injury']['queryResults']['row']
 
 

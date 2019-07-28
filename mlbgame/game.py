@@ -18,8 +18,9 @@ def scoreboard(year, month, day, home=None, away=None):
     # get data
     data = mlbgame.data.get_scoreboard(year, month, day)
     # parse data
-    parsed = etree.parse(data)
-    root = parsed.getroot()
+    parsed = etree.fromstring(data)
+    #root = parsed.getroot()
+    root = parsed
     games = {}
     output = {}
     # loop through games
@@ -229,8 +230,9 @@ def box_score(game_id):
     # get data
     data = mlbgame.data.get_box_score(game_id)
     # parse data
-    parsed = etree.parse(data)
-    root = parsed.getroot()
+    parsed = etree.fromstring(data)
+    #root = parsed.getroot()
+    root = parsed
     linescore = root.find('linescore')
     result = dict()
     result['game_id'] = game_id
@@ -336,7 +338,8 @@ def overview(game_id):
     # get data
     overview = mlbgame.data.get_overview(game_id)
     # parse data
-    overview_root = etree.parse(overview).getroot()
+    #overview_root = etree.fromstring(overview).getroot()
+    overview_root = etree.fromstring(overview)
 
     try:
         output = add_raw_box_score_attributes(output, game_id)
@@ -369,7 +372,8 @@ def add_raw_box_score_attributes(output, game_id):
     # rawboxscore may not be available prior to a game
     raw_box_score = mlbgame.data.get_raw_box_score(game_id)
     try:
-        raw_box_score_root = etree.parse(raw_box_score).getroot()
+        #raw_box_score_root = etree.fromstring(raw_box_score).getroot()
+        raw_box_score_root = etree.fromstring(raw_box_score)
         # get raw box score attributes
         for attr in raw_box_score_root.attrib:
             output[attr] = raw_box_score_root.attrib[attr]
@@ -551,8 +555,9 @@ def players(game_id):
     # get data
     data = mlbgame.data.get_players(game_id)
     # parse data
-    parsed = etree.parse(data)
-    root = parsed.getroot()
+    parsed = etree.fromstring(data)
+    #root = parsed.getroot()
+    root = parsed
 
     output = {}
     output['game_id'] = game_id
