@@ -105,14 +105,14 @@ def scoreboard(year, month, day, home=None, away=None):
             elif game_tag == 'sg_game':
                 try:
                     p_pitcher_data = game.findall('p_pitcher')
-                    p_pitcher_home_data = p_pitcher_data[0]
+                    p_pitcher_home_data = p_pitcher_data[1] # swapped positions
                     p_pitcher_home = p_pitcher_home_data.find(
                         'pitcher').attrib['name']
                     p_pitcher_home_wins = int(p_pitcher_home_data.
                                               attrib['wins'])
                     p_pitcher_home_losses = int(p_pitcher_home_data.
                                                 attrib['losses'])
-                    p_pitcher_away_data = p_pitcher_data[1]
+                    p_pitcher_away_data = p_pitcher_data[0] # swapped positions
                     p_pitcher_away = p_pitcher_away_data.find(
                         'pitcher').attrib['name']
                     p_pitcher_away_wins = int(p_pitcher_away_data.
@@ -275,20 +275,21 @@ class GameBoxScore(object):
         self.innings = []
         # loops through the innings
         for x in sorted(data):
-            try:
-                result = {
-                    'inning': int(x),
-                    'home': int(data[x]['home']),
-                    'away': int(data[x]['away'])
-                }
-            # possible error when 9th innning home team has 'x'
-            # becuase they did not bat
-            except ValueError:
-                result = {
-                    'inning': int(x),
-                    'home': data[x]['home'],
-                    'away': int(data[x]['away'])
-                }
+            # Cast score for each half-inning to `int` if score is a digit
+            # For reference---examples of a blank score ('') appearing:
+            # 1. Team hasn't scored during the half-inning for an ongoing game
+            # 2. Home team does not bat during the bottom of the 9th
+            home_score = data[x]['home']
+            if type(home_score) == str and home_score.isdigit():
+                home_score = int(home_score)
+            away_score = data[x]['away']
+            if type(away_score) == str and away_score.isdigit():
+                away_score = int(away_score)
+            result = {
+                'inning': int(x),
+                'home': home_score,
+                'away': away_score
+            }
             self.innings.append(result)
 
     def __iter__(self):
@@ -367,10 +368,13 @@ def overview(game_id):
 def add_raw_box_score_attributes(output, game_id):
     # rawboxscore may not be available prior to a game
     raw_box_score = mlbgame.data.get_raw_box_score(game_id)
-    raw_box_score_root = etree.parse(raw_box_score).getroot()
-    # get raw box score attributes
-    for attr in raw_box_score_root.attrib:
-        output[attr] = raw_box_score_root.attrib[attr]
+    try:
+        raw_box_score_root = etree.parse(raw_box_score).getroot()
+        # get raw box score attributes
+        for attr in raw_box_score_root.attrib:
+            output[attr] = raw_box_score_root.attrib[attr]
+    except etree.XMLSyntaxError:
+        pass
     return output
 
 
